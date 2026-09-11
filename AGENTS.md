@@ -18,6 +18,20 @@ pnpm typecheck    # 型チェック
 
 ---
 
+## デプロイ
+
+Cloudflare Workers の静的アセットとして配信する。バックエンドはなく、Vite のビルド結果（`dist/`）をそのまま配信する。設定は `wrangler.jsonc`。
+
+```sh
+pnpm run cf:deploy   # ビルドして Cloudflare にデプロイ
+```
+
+`pnpm deploy` は pnpm 自体の別コマンドなので使わない。スクリプト名は `cf:deploy` とする。
+
+main ブランチへの push で自動デプロイする（Cloudflare の Workers Builds と GitHub を連携）。
+
+---
+
 ## プロジェクト概要
 
 オルゴールのメロディ作成に特化した、小さな Web ベースのステップシーケンサーを作る。
