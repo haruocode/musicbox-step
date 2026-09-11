@@ -8,6 +8,11 @@
   --accent: #f0b429;
   --focus: #7cc4ff;
 
+  --cell-off: #34373b;
+  --cell-beat: #3b3e43;
+  --cell-current: #4a4636;
+  --note-on: #f0b429;
+
   color-scheme: dark;
   font-family: system-ui, -apple-system, 'Hiragino Sans', sans-serif;
   font-size: 16px;
@@ -56,8 +61,17 @@ button.primary {
   font-weight: 600;
 }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
 .machine {
-  max-width: 820px;
+  max-width: 920px;
   margin: 0 auto;
   padding: 2rem 1rem;
   display: grid;
@@ -89,40 +103,122 @@ button.primary {
   border-radius: 4px;
 }
 
-.step-indicator {
-  list-style: none;
-  margin: 0;
-  padding: 0.75rem;
-  display: grid;
-  grid-template-columns: repeat(16, minmax(0, 1fr));
-  gap: 4px;
+/* ---- グリッド ---- */
+
+/* 横スクロールするのはグリッドだけにする */
+.grid-scroll {
+  overflow-x: auto;
   background: var(--casing);
   border-radius: 10px;
+  padding: 0.75rem;
 }
 
-.step {
-  padding: 0.5rem 0;
-  text-align: center;
+.grid {
+  --cell-size: 34px;
+
+  position: relative;
+  display: grid;
+  grid-template-columns: 3.25rem repeat(var(--steps), minmax(40px, 1fr));
+  gap: 3px;
   font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+.grid-row {
+  display: contents;
+}
+
+/* 音名の列は左端に固定し、スクロールしても何の音かわかるようにする */
+.grid-corner,
+.grid-note {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--casing);
+}
+
+.grid-note {
+  display: flex;
+  align-items: center;
   font-size: 0.8rem;
   color: var(--muted);
-  background: #34373b;
+}
+
+.grid-note.octave {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.grid-step {
+  padding: 0.25rem 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--muted);
   border: 2px solid transparent;
   border-radius: 4px;
 }
 
-.step.beat {
+.grid-step.beat {
   color: var(--text);
-  background: #3d4045;
 }
 
 /* 色だけに頼らず、枠と太字でも現在のステップを示す */
-.step.current {
+.grid-step.current {
   color: #1a1a1a;
   background: var(--accent);
   border-color: #fff4d6;
   font-weight: 700;
 }
+
+.grid-cell {
+  display: flex;
+}
+
+.cell {
+  flex: 1;
+  min-height: var(--cell-size);
+  padding: 0;
+  display: grid;
+  place-items: center;
+  font-size: 0.9rem;
+  line-height: 1;
+  color: #1a1a1a;
+  background: var(--cell-off);
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+
+.grid-cell.beat .cell {
+  background: var(--cell-beat);
+}
+
+.grid-cell.current .cell {
+  background: var(--cell-current);
+}
+
+.cell:hover {
+  border-color: #6a6e75;
+}
+
+.cell[aria-pressed='true'] {
+  background: var(--note-on);
+  border-color: #fff4d6;
+}
+
+.grid-cell.current .cell[aria-pressed='true'] {
+  background: #ffd36b;
+  box-shadow: 0 0 10px rgb(240 180 41 / 0.7);
+}
+
+/* タッチ操作では押しやすい大きさにする */
+@media (pointer: coarse) {
+  .grid {
+    --cell-size: 44px;
+
+    grid-template-columns: 3.25rem repeat(var(--steps), 44px);
+  }
+}
+
+/* ---- コントロール ---- */
 
 .controls {
   display: flex;
@@ -152,15 +248,4 @@ button.primary {
 .tempo-slider input {
   width: 10rem;
   accent-color: var(--accent);
-}
-
-@media (max-width: 560px) {
-  .step-indicator {
-    gap: 2px;
-    padding: 0.5rem;
-  }
-
-  .step {
-    font-size: 0.65rem;
-  }
 }
