@@ -2,33 +2,40 @@ import { useEffect, useRef, useState } from 'react'
 import { ensureRunning, getOutput } from '../audio/audioEngine'
 import { playNote } from '../audio/musicBoxSynth'
 import { Scheduler, clampBpm } from '../audio/scheduler'
-import { StepIndicator } from '../components/StepIndicator'
+import { SequencerGrid } from '../components/SequencerGrid'
 import { TempoControl } from '../components/TempoControl'
 import { Transport } from '../components/Transport'
-import { DEMO_PATTERN } from '../sequencer/pattern'
+import { DEMO_PATTERN, clearPattern, hasNote, toggleNote } from '../sequencer/pattern'
+import { SCALE } from '../sequencer/scale'
+import type { Pattern } from '../sequencer/types'
 
-// フェーズ 2：固定のパターンをループ再生して、テンポと表示の同期を確認する。
-
-const pattern = DEMO_PATTERN
+/** グリッドの行。高い音を上にする。 */
+const ROWS = [...SCALE].reverse()
 
 export default function App() {
-  const [bpm, setBpm] = useState(pattern.bpm)
+  const [pattern, setPattern] = useState<Pattern>(DEMO_PATTERN)
   const [playing, setPlaying] = useState(false)
   const [currentStep, setCurrentStep] = useState<number | null>(null)
 
-  // スケジューラーは React の描画とは独立して動くため、最新の BPM は ref で渡す。
-  const bpmRef = useRef(bpm)
+  // スケジューラーは React の描画とは独立して動くため、最新のパターンは ref で渡す。
+  // 予約する時点のパターンを読むので、再生中の変更は未予約のステップから反映される。
+  const patternRef = useRef(pattern)
   const schedulerRef = useRef<Scheduler | null>(null)
 
   function getScheduler(): Scheduler {
     schedulerRef.current ??= new Scheduler({
-      steps: pattern.steps,
-      getBpm: () => bpmRef.current,
+      steps: patternRef.current.steps,
+      getBpm: () => patternRef.current.bpm,
       onStep: ({ step, time }, ctx) => {
-        for (const midi of pattern.notes[step]) playNote(ctx, getOutput(), midi, time)
+        for (const midi of patternRef.current.notes[step]) playNote(ctx, getOutput(), midi, time)
       },
     })
     return schedulerRef.current
+  }
+
+  function updatePattern(next: Pattern) {
+    patternRef.current = next
+    setPattern(next)
   }
 
   useEffect(() => () => schedulerRef.current?.stop(), [])
@@ -58,10 +65,23 @@ export default function App() {
     setCurrentStep(null)
   }
 
+  async function handleToggle(step: number, midi: number) {
+    const turningOn = !hasNote(patternRef.current, step, midi)
+    updatePattern(toggleNote(patternRef.current, step, midi))
+
+    // 停止中は、置いた音をその場で鳴らして確認できるようにする。
+    if (turningOn && !playing) {
+      const ctx = await ensureRunning()
+      playNote(ctx, getOutput(), midi, ctx.currentTime)
+    }
+  }
+
+  function handleClear() {
+    updatePattern(clearPattern(patternRef.current))
+  }
+
   function handleBpmChange(value: number) {
-    const next = clampBpm(value)
-    bpmRef.current = next
-    setBpm(next)
+    updatePattern({ ...patternRef.current, bpm: clampBpm(value) })
   }
 
   const stepLabel = currentStep === null ? '--' : String(currentStep + 1).padStart(2, '0')
@@ -70,20 +90,23 @@ export default function App() {
     <main className="machine">
       <header className="machine-header">
         <h1>musicbox-step</h1>
-        <p className="lcd" aria-live="off">
+        <p className="lcd">
           <span>{playing ? 'PLAY' : 'STOP'}</span>
           <span>
             STEP {stepLabel}/{pattern.steps}
           </span>
-          <span>BPM {bpm}</span>
+          <span>BPM {pattern.bpm}</span>
         </p>
       </header>
 
-      <StepIndicator steps={pattern.steps} currentStep={currentStep} />
+      <SequencerGrid pattern={pattern} rows={ROWS} currentStep={currentStep} onToggle={handleToggle} />
 
       <section className="controls">
         <Transport playing={playing} onPlay={handlePlay} onStop={handleStop} />
-        <TempoControl bpm={bpm} onChange={handleBpmChange} />
+        <TempoControl bpm={pattern.bpm} onChange={handleBpmChange} />
+        <button type="button" onClick={handleClear}>
+          Clear
+        </button>
       </section>
     </main>
   )
