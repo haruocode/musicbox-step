@@ -1,0 +1,94 @@
+:root {
+  --casing: #2b2d30;
+  --panel: #1f2023;
+  --text: #e8e6e1;
+  --muted: #a3a09a;
+  --lcd-bg: #b9c7a0;
+  --lcd-text: #1f2a14;
+  --accent: #f0b429;
+  --focus: #7cc4ff;
+
+  color-scheme: dark;
+  font-family: system-ui, -apple-system, 'Hiragino Sans', sans-serif;
+  font-size: 16px;
+  color: var(--text);
+  background: var(--panel);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+button {
+  font: inherit;
+  color: var(--text);
+  background: #3a3d42;
+  border: 1px solid #55595f;
+  border-radius: 6px;
+  padding: 0.6rem 1rem;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #45494f;
+}
+
+button:active {
+  transform: translateY(1px);
+}
+
+button:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.spike {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+  display: grid;
+  gap: 1.5rem;
+}
+
+.spike h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  letter-spacing: 0.05em;
+}
+
+.spike section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--casing);
+  border-radius: 10px;
+}
+
+.lcd {
+  margin: 0;
+  padding: 0.6rem 0.9rem;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  background: var(--lcd-bg);
+  color: var(--lcd-text);
+  border-radius: 4px;
+  width: fit-content;
+}
+
+.note {
+  min-width: 3.5rem;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+}
