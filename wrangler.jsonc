@@ -1,0 +1,11 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "musicbox-step",
+  "compatibility_date": "2026-09-10",
+  // バックエンドのない静的サイトなので、Worker のコード（main）は持たず、
+  // Vite のビルド結果（dist）を静的アセットとして配信する。
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}
